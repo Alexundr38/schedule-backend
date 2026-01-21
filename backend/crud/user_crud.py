@@ -1,12 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from passlib.context import CryptContext
 from typing import Optional
 from backend.models import models
 from backend.schemas import user_schema
 from datetime import datetime
 from sqlalchemy import select
+from backend.crud import auth_crud
 
-password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[models.User]:
     result = await db.execute(
@@ -15,8 +14,8 @@ async def get_user_by_email(db: AsyncSession, email: str) -> Optional[models.Use
     return result.scalars().one_or_none()
 
 
-async def create_user(db: AsyncSession, user: user_schema.UserCreate) -> models.User:
-    hashed_password = password_context.hash(user.password)
+async def create_user(db: AsyncSession, user: user_schema.UserCreate):
+    hashed_password = auth_crud.get_password_hash(user.password)
     db_user = models.User(
         name=user.name,
         email=user.email,
@@ -26,13 +25,12 @@ async def create_user(db: AsyncSession, user: user_schema.UserCreate) -> models.
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)
-    return db_user
 
 
 async def login_user(db: AsyncSession, user: user_schema.UserLogin) -> Optional[models.User]:
     db_user = await get_user_by_email(db, user.email)
     if not db_user:
         return None
-    if not password_context.verify(user.password, db_user.password):
+    if not auth_crud.verify_password(user.password, db_user.password):
         return None
     return db_user

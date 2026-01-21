@@ -1,16 +1,13 @@
 import os
 import sys
 from logging.config import fileConfig
-from dotenv import load_dotenv
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 import asyncio
-
-load_dotenv()
+from backend.config import get_migration_db_url
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 
@@ -24,7 +21,7 @@ if config.config_file_name is not None:
 
 
 def get_url():
-    migration_url = os.getenv("MIGRATION_DATABASE_URL")
+    migration_url = get_migration_db_url()
 
     if migration_url:
         print(migration_url)
@@ -47,6 +44,7 @@ def run_migrations_offline():
     with context.begin_transaction():
         context.run_migrations()
 
+
 def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
@@ -58,13 +56,10 @@ def do_run_migrations(connection: Connection) -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+
 async def run_async_migrations() -> None:
-    """In this scenario we need to create an Engine
-    and associate a connection with the context.
-    """
 
     url = get_url()
-    url_with_schema = f"{url}?options=-csearch_path%3Dschedule_schema"
 
     connectable = async_engine_from_config(
         {"sqlalchemy.url": url},
@@ -80,29 +75,7 @@ async def run_async_migrations() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
     asyncio.run(run_async_migrations())
-
-# def run_migrations_online():
-#     url = get_url()
-#     url_with_schema = f"{url}?options=-csearch_path%3Dschedule_schema"
-#
-#     connectable = engine_from_config(
-#         {"sqlalchemy.url": url_with_schema},
-#         prefix="sqlalchemy.",
-#         poolclass=pool.NullPool,
-#     )
-#
-#     with connectable.connect() as connection:
-#         context.configure(
-#             connection=connection,
-#             target_metadata=target_metadata,
-#             include_schemas=True,
-#             version_table_schema=None,
-#         )
-#
-#         with context.begin_transaction():
-#             context.run_migrations()
 
 
 if context.is_offline_mode():

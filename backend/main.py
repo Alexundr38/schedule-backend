@@ -1,9 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
-import api.routers
 
-# Импортируем все роутеры
 from api.routers import user_router
 
 app = FastAPI()
@@ -18,9 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Подключаем все роутеры
 app.include_router(user_router.router)
-# app.include_router(orders.router)  # Когда создадите
 
 @app.get("/")
 def root():
