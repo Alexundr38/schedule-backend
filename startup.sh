@@ -4,7 +4,7 @@ set -x
 
 echo 'Waiting for PostgreSQL...'
 for i in $(seq 1 30); do
-  PGPASSWORD=${MIGRATION_DB_PASSWORD} psql -h postgres -p 5431 -U schedule_migration_user -d schedule_db -c 'SELECT 1;' >/dev/null 2>&1 && break
+  PGPASSWORD=${MIGRATION_DB_PASSWORD} psql -h postgres -U schedule_migration_user -d schedule_db -c 'SELECT 1;' >/dev/null 2>&1 && break
   [ $i -eq 30 ] && echo 'Error: PostgreSQL timeout' && exit 1
   sleep 2
 done
@@ -13,13 +13,13 @@ echo 'Database setup...'
 cd /app
 
 echo '1. Ensuring alembic_version table...'
-PGPASSWORD=${MIGRATION_DB_PASSWORD} psql -h postgres -p 5431 -U schedule_migration_user -d schedule_db -c '
+PGPASSWORD=${MIGRATION_DB_PASSWORD} psql -h postgres -U schedule_migration_user -d schedule_db -c '
   CREATE TABLE IF NOT EXISTS schedule_schema.alembic_version (
     version_num VARCHAR(32) NOT NULL PRIMARY KEY
   );'
 
 echo '2. Checking current migration state...'
-VERSION_COUNT=$(PGPASSWORD=${MIGRATION_DB_PASSWORD} psql -h postgres -p 5431 -U schedule_migration_user -d schedule_db -t -c "SELECT COUNT(*) FROM schedule_schema.alembic_version;" | tr -d '[:space:]')
+VERSION_COUNT=$(PGPASSWORD=${MIGRATION_DB_PASSWORD} psql -h postgres -U schedule_migration_user -d schedule_db -t -c "SELECT COUNT(*) FROM schedule_schema.alembic_version;" | tr -d '[:space:]')
 echo "Version count in database: $VERSION_COUNT"
 
 MIGRATION_FILES_COUNT=$(find alembic/versions -name "*.py" -type f 2>/dev/null | wc -l)
@@ -38,7 +38,7 @@ if [ "$VERSION_COUNT" -eq 0 ]; then
 fi
 
 echo '5. Verifying tables...'
-PGPASSWORD=${MIGRATION_DB_PASSWORD} psql -h postgres -p 5431 -U schedule_migration_user -d schedule_db -c "\dt schedule_schema.*"
+PGPASSWORD=${MIGRATION_DB_PASSWORD} psql -h postgres -U schedule_migration_user -d schedule_db -c "\dt schedule_schema.*"
 
 echo 'Starting app...'
 cd /app/backend

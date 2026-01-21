@@ -1,41 +1,30 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.status import HTTP_201_CREATED
-from sqlalchemy.orm import Session
+import os
+import api.routers
 
-import models
-import schemas
-import crud
-from database import get_db
+# Импортируем все роутеры
+from api.routers import user_router
+
 app = FastAPI()
+
+origins = os.getenv("CORS_ORIGINS", "http://localhost:8080").split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], #other domens
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.post("/users/create/", response_model=schemas.UserReturn, status_code=status.HTTP_201_CREATED)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(
-            status_code=400,
-            detail="Email already registered"
-        )
-    return crud.create_user(db, user=user)
+# Подключаем все роутеры
+app.include_router(user_router.router)
+# app.include_router(orders.router)  # Когда создадите
 
-@app.post("/users/login/", response_model=schemas.UserReturn)
-def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    db_user = crud.login_user(db, user=user)
-    if db_user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
-        )
-    return db_user
+@app.get("/")
+def root():
+    return {"message": "API работает"}
 
 if __name__ == "__main__":
     import uvicorn

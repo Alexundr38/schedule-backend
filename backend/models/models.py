@@ -1,4 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy import Column, Integer, String, ForeignKey, UUID, DateTime, Time
 from sqlalchemy.schema import MetaData
 import uuid
@@ -7,7 +8,7 @@ import enum
 
 metadata = MetaData(schema="schedule_schema")
 
-class Base(DeclarativeBase):
+class Base(AsyncAttrs, DeclarativeBase):
     metadata = metadata
 
 
