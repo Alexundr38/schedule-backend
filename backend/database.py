@@ -27,9 +27,9 @@ SessionLocal = async_sessionmaker(
 
 Base: DeclarativeMeta = declarative_base()
 
-def get_db() -> Generator:
+async def get_db() -> Generator:
     db = SessionLocal()
     try:
         yield db
     finally:
-        db.close()
+        await db.close()

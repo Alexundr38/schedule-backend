@@ -4,9 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.crud import user_crud, auth_crud
 from backend.schemas import user_schema
 from backend.database import get_db
-from datetime import timedelta
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/user", tags=["user"])
 
 
 @router.post("/create/", status_code=status.HTTP_201_CREATED)

@@ -1,10 +1,15 @@
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.config import get_auth_data
 from fastapi import HTTPException, status, Request, Depends
 from typing import Optional
 
+from backend.models import models
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -50,3 +55,17 @@ def get_user_id(token: str = Depends(get_token)) -> Optional[str]:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
     return user_id
+
+
+async def check_relations(db: AsyncSession, global_group_id: str, user_id: str) -> bool:
+    result = await db.execute(
+        select(models.GlobalGroupUser).\
+        where(
+            models.GlobalGroupUser.global_group_id == global_group_id,
+            models.GlobalGroupUser.user_id == user_id
+        )
+    )
+
+    if result:
+        return True
+    return False
