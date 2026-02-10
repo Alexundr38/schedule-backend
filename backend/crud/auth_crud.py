@@ -68,4 +68,8 @@ async def check_relations(db: AsyncSession, global_group_id: str, user_id: str) 
 
     if result:
         return True
-    return False
+
+    raise HTTPException(
+        status_code=401,
+        detail="User ID and group ID do not match"
+    )

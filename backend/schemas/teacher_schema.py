@@ -18,3 +18,11 @@ class Teacher(TeacherBase):
 
 class TeacherCreate(TeacherBase):
     global_group_id: str
+
+
+class TeacherGlobalGroup(Teacher):
+    global_group_id: Union[UUID, str]
+
+    @field_serializer('global_group_id')
+    def serialize_global_group_id(self, global_group_id: UUID):
+        return str(global_group_id) if global_group_id else None

@@ -33,12 +33,31 @@ async def create_teacher(
 
     print(teacher.name)
 
-    is_auth = await auth_crud.check_relations(db, teacher.global_group_id, user_id)
-    if not is_auth:
-        raise HTTPException(
-            status_code=401,
-            detail="User ID and group ID do not match"
-        )
+    await auth_crud.check_relations(db, teacher.global_group_id, user_id) #TODO other check
 
     db_teacher = await teacher_crud.add_teacher(db, teacher.global_group_id, teacher.name)
+    return db_teacher
+
+
+@router.delete("/delete")
+async def delete_teacher(
+        teacher: teacher_schema.TeacherGlobalGroup,
+        user_id: str = Depends(auth_crud.get_user_id),
+        db: AsyncSession = Depends(get_db)):
+
+    await auth_crud.check_relations(db, teacher.global_group_id, user_id)
+
+    result = await teacher_crud.delete_teacher(db, teacher.global_group_id, teacher.teacher_id)
+    return result #TODO change response with False
+
+
+@router.put("/update", response_model=teacher_schema.Teacher)
+async def update_teacher(
+        teacher: teacher_schema.TeacherGlobalGroup,
+        user_id: str = Depends(auth_crud.get_user_id),
+        db: AsyncSession = Depends(get_db)):
+
+    await auth_crud.check_relations(db, teacher.global_group_id, user_id)
+
+    db_teacher = await teacher_crud.update_teacher(db, teacher.teacher_id, teacher.name, teacher.global_group_id)
     return db_teacher
