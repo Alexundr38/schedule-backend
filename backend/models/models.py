@@ -163,6 +163,8 @@ class Group(Base):
     )
     name = Column(String(255))
 
+    student_count = Column(Integer, default=0)
+
     global_group_associations = relationship(
         "GlobalGroupGroup",
         back_populates="group"

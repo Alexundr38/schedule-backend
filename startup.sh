@@ -35,6 +35,8 @@ if [ "$VERSION_COUNT" -eq 0 ]; then
     alembic revision --autogenerate -m "Initial migration"
     alembic upgrade head
   fi
+else
+  alembic upgrade head
 fi
 
 echo '5. Verifying tables...'

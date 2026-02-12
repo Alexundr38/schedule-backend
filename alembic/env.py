@@ -20,6 +20,12 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "table" and name == "alembic_version":
+        return False
+    return True
+
+
 def get_url():
     migration_url = get_migration_db_url()
 
@@ -38,7 +44,8 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         include_schemas=True,
-        version_table_schema="schedule_schema"
+        version_table_schema="schedule_schema",
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -50,7 +57,8 @@ def do_run_migrations(connection: Connection) -> None:
         connection=connection,
         target_metadata=target_metadata,
         include_schemas=True,
-        version_table_schema="schedule_schema"
+        version_table_schema="schedule_schema",
+        include_object=include_object,
     )
 
     with context.begin_transaction():

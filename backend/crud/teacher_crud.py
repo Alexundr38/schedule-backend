@@ -53,6 +53,7 @@ async def add_teacher(db: AsyncSession, global_group_id: str, teacher_name: str)
 
     return db_teacher
 
+
 async def delete_teacher(db: AsyncSession, global_group_id: str, teacher_id: str) -> bool:
     subquery = (
         select(models.GlobalGroupTeacher.teacher_id).\
@@ -104,5 +105,6 @@ async def update_teacher(db: AsyncSession, teacher_id: str, teacher_name:str, gl
         )
 
     await db.commit()
+    await db.refresh(db_teacher)
 
     return db_teacher

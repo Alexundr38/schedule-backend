@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-from api.routers import user_router, global_group_router, teacher_router
+from api.routers import user_router, global_group_router, teacher_router, group_router, subject_router
 
 app = FastAPI()
 
@@ -20,6 +20,8 @@ app.add_middleware(
 app.include_router(user_router.router)
 app.include_router(global_group_router.router)
 app.include_router(teacher_router.router)
+app.include_router(group_router.router)
+app.include_router(subject_router.router)
 
 @app.get("/")
 def root():
