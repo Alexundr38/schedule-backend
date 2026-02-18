@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from backend.models import models
 from sqlalchemy import select, delete, update
 
@@ -17,7 +17,7 @@ async def get_group_by_name(db: AsyncSession, group_name: str, global_group_id: 
     return result.scalar_one_or_none()
 
 
-async def get_groups_by_global_group(db: AsyncSession, global_group_id: str) -> List[models.Group]:
+async def get_group_by_global_group(db: AsyncSession, global_group_id: str) -> List[models.Group]:
     result = await db.execute(
         select(models.Group).\
         join(models.GlobalGroupGroup).\
@@ -25,6 +25,16 @@ async def get_groups_by_global_group(db: AsyncSession, global_group_id: str) -> 
     )
 
     return result.scalars().all()
+
+
+async def get_groups_name_id_by_global_group(db: AsyncSession, global_group_id: str) -> List[Tuple[str, str]]:
+    result = await db.execute(
+        select(models.Group.name, models.Group.group_id).\
+        join(models.GlobalGroupGroup).\
+        where(models.GlobalGroupGroup.global_group_id == global_group_id)
+    )
+
+    return result.all()
 
 
 async def add_group(db: AsyncSession, global_group_id: str, group_name: str, student_count: int) -> Optional[models.Group]:

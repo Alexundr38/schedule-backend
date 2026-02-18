@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from backend.models import models
 from sqlalchemy import select, delete, update
 
@@ -18,6 +18,16 @@ async def get_subject_by_name(db: AsyncSession, subject_name: str, global_group_
 
 
 async def get_subjects_by_global_group(db: AsyncSession, global_group_id: str) -> List[models.Subject]:
+    result = await db.execute(
+        select(models.Subject).\
+        join(models.GlobalGroupSubject).\
+        where(models.GlobalGroupSubject.global_group_id == global_group_id)
+    )
+
+    return result.scalars().all()
+
+#now it equals with previous, but this is look forward to the future
+async def get_subjects_name_id_by_global_group(db: AsyncSession, global_group_id: str) -> List[models.Subject]:
     result = await db.execute(
         select(models.Subject).\
         join(models.GlobalGroupSubject).\

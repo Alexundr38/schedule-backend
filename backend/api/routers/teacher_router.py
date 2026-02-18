@@ -14,14 +14,21 @@ async def get_teacher_list(
         user_id: str = Depends(auth_crud.get_user_id),
         db: AsyncSession = Depends(get_db)) -> List[teacher_schema.Teacher]:
 
-    is_auth = await auth_crud.check_relations(db, global_group_id, user_id)
-    if not is_auth:
-        raise HTTPException(
-            status_code=401,
-            detail="User ID and group ID do not match"
-        )
+    await auth_crud.check_relations(db, global_group_id, user_id)
 
     teachers = await teacher_crud.get_teachers_by_global_group(db, global_group_id)
+    return teachers
+
+
+@router.get("/list_name_id", response_model=List[teacher_schema.Teacher])
+async def get_teacher_name_id_list(
+        global_group_id: str,
+        user_id: str = Depends(auth_crud.get_user_id),
+        db: AsyncSession = Depends(get_db)) -> List[teacher_schema.Teacher]:
+
+    await auth_crud.check_relations(db, global_group_id, user_id)
+
+    teachers = await teacher_crud.get_teachers_name_id_by_global_group(db, global_group_id)
     return teachers
 
 

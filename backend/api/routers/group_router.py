@@ -8,21 +8,29 @@ from backend.database import get_db
 
 router = APIRouter(prefix="/group", tags=["group"])
 
+
 @router.get("/list", response_model=List[group_schema.Group])
 async def get_group_list(
         global_group_id: str,
         user_id: str = Depends(auth_crud.get_user_id),
         db: AsyncSession = Depends(get_db)) -> List[group_schema.Group]:
 
-    is_auth = await auth_crud.check_relations(db, global_group_id, user_id)
-    if not is_auth:
-        raise HTTPException(
-            status_code=401,
-            detail="User ID and group ID do not match"
-        )
+    await auth_crud.check_relations(db, global_group_id, user_id)
 
     groups = await group_crud.get_groups_by_global_group(db, global_group_id)
     return groups
+
+
+@router.get("/list_name_id", response_model=List[group_schema.GroupNameId])
+async def get_group_name_id_list(
+        global_group_id: str,
+        user_id: str = Depends(auth_crud.get_user_id),
+        db: AsyncSession = Depends(get_db)):
+
+    await auth_crud.check_relations(db, global_group_id, user_id)
+
+    db_groups = await group_crud.get_groups_name_id_by_global_group(db, global_group_id)
+    return db_groups
 
 
 @router.post("/create", response_model=group_schema.Group)

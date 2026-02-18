@@ -80,6 +80,10 @@ class GlobalGroup(Base):
         "GlobalGroupTimeGroup",
         back_populates="global_group"
     )
+    plan = relationship(
+        "Plan",
+        back_populates="global_group"
+    )
 
 
 class GlobalGroupUser(Base):
@@ -263,6 +267,10 @@ class Teacher(Base):
         "TeacherLesson",
         back_populates="teacher"
     )
+    plan_associations = relationship(
+        "TeacherPlan",
+        back_populates="teacher"
+    )
 
 
 class GlobalGroupTeacher(Base):
@@ -297,6 +305,11 @@ class Plan(Base):
         primary_key=True,
         default=uuid.uuid4
     )
+    global_group_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("global_group.global_group_id", ondelete="CASCADE"),
+        nullable=False
+    )
     subject_id = Column(
         UUID(as_uuid=True),
         ForeignKey("subject.subject_id", ondelete="CASCADE"),
@@ -316,7 +329,7 @@ class Plan(Base):
         SQLAlchemyEnum(EventFormat, name="event_format_enum"),
         default=EventFormat.OFFLINE
     )
-    hours = Column(Integer)
+    hours = Column(Integer, default=0)
 
     subject = relationship(
         "Subject",
@@ -334,6 +347,45 @@ class Plan(Base):
         "Lesson",
         back_populates="plan"
     )
+    global_group = relationship(
+        "GlobalGroup",
+        back_populates="plan"
+    )
+
+    teacher_associations = relationship(
+        "TeacherPlan",
+        back_populates="plan"
+    )
+
+
+class TeacherPlan(Base):
+    __tablename__ = "teacher_plan"
+
+    plan_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("plan.plan_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    teacher_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("teacher.teacher_id", ondelete="CASCADE"),
+        primary_key=True
+    )
+
+    priority = Column(Integer, default=0)
+
+    plan = relationship(
+        "Plan",
+        back_populates="teacher_associations"
+    )
+
+    teacher = relationship(
+        "Teacher",
+        back_populates="plan_associations"
+    )
+
+
 
 
 class TimeGroup(Base):

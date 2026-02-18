@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-from api.routers import user_router, global_group_router, teacher_router, group_router, subject_router
+from api.routers import user_router, global_group_router, teacher_router, group_router, subject_router, event_router
 
 app = FastAPI()
 
@@ -22,10 +22,11 @@ app.include_router(global_group_router.router)
 app.include_router(teacher_router.router)
 app.include_router(group_router.router)
 app.include_router(subject_router.router)
+app.include_router(event_router.router)
 
 @app.get("/")
 def root():
-    return {"message": "API работает"}
+    return {"message": "API started"}
 
 if __name__ == "__main__":
     import uvicorn

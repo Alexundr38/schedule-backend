@@ -6,10 +6,9 @@ from pydantic import BaseModel, Field, field_serializer
 
 class GroupBase(BaseModel):
     name: str = Field(..., max_length=255)
-    student_count: int = Field(...)
 
 
-class Group(GroupBase):
+class GroupNameId(GroupBase):
     group_id: Union[UUID, str]
 
     @field_serializer('group_id')
@@ -17,7 +16,19 @@ class Group(GroupBase):
         return str(group_id) if group_id else None
 
 
-class GroupCreate(GroupBase):
+class GroupStudent(GroupBase):
+    student_count: int = Field(...)
+
+
+class Group(GroupStudent):
+    group_id: Union[UUID, str]
+
+    @field_serializer('group_id')
+    def serialize_group_id(self, group_id: UUID):
+        return str(group_id) if group_id else None
+
+
+class GroupCreate(GroupStudent):
     global_group_id: str
 
 

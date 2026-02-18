@@ -27,6 +27,17 @@ async def get_teachers_by_global_group(db: AsyncSession, global_group_id: str) -
     return result.scalars().all()
 
 
+#now it equals with previous, but this is look forward to the future
+async def get_teachers_name_id_by_global_group(db: AsyncSession, global_group_id: str) -> List[models.Teacher]:
+    result = await db.execute(
+        select(models.Teacher).\
+        join(models.GlobalGroupTeacher).\
+        where(models.GlobalGroupTeacher.global_group_id == global_group_id)
+    )
+
+    return result.scalars().all()
+
+
 async def add_teacher(db: AsyncSession, global_group_id: str, teacher_name: str) -> Optional[models.Teacher]:
     check_teacher = await get_teacher_by_name(db, teacher_name, global_group_id)
     if check_teacher:
