@@ -1,6 +1,9 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List, Tuple
+
+from starlette import status
+
 from backend.models import models
 from sqlalchemy import select, delete, update
 
@@ -17,7 +20,7 @@ async def get_group_by_name(db: AsyncSession, group_name: str, global_group_id: 
     return result.scalar_one_or_none()
 
 
-async def get_group_by_global_group(db: AsyncSession, global_group_id: str) -> List[models.Group]:
+async def get_groups_by_global_group(db: AsyncSession, global_group_id: str) -> List[models.Group]:
     result = await db.execute(
         select(models.Group).\
         join(models.GlobalGroupGroup).\
@@ -41,8 +44,8 @@ async def add_group(db: AsyncSession, global_group_id: str, group_name: str, stu
     check_group = await get_group_by_name(db, group_name, global_group_id)
     if check_group:
         raise HTTPException(
-            status_code=401,                    #TODO change status code
-            detail="group already exists"
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Group already exists"
         )
 
     db_group = models.Group(
@@ -65,7 +68,7 @@ async def add_group(db: AsyncSession, global_group_id: str, group_name: str, stu
     return db_group
 
 
-async def delete_group(db: AsyncSession, global_group_id: str, group_id: str) -> bool:
+async def delete_group(db: AsyncSession, global_group_id: str, group_id: str):
     subquery = (
         select(models.GlobalGroupGroup.group_id).\
         where(
@@ -85,10 +88,12 @@ async def delete_group(db: AsyncSession, global_group_id: str, group_id: str) ->
     # )
 
     if result.rowcount == 0:
-        return False
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="Subject does not exist"
+        )
 
     await db.commit()
-    return True
 
 
 async def update_group(db: AsyncSession, group_id: str, group_name:str, student_count: int, global_group_id: str) -> Optional[models.Group]:
@@ -96,8 +101,8 @@ async def update_group(db: AsyncSession, group_id: str, group_name:str, student_
     old_group = await get_group_by_name(db, group_name, global_group_id)
     if str(old_group.group_id) != group_id:
         raise HTTPException(
-            status_code=401, #TODO change code
-            detail="group already exists"
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Group already exists"
         )
 
     result = await db.execute(
@@ -114,8 +119,8 @@ async def update_group(db: AsyncSession, group_id: str, group_name:str, student_
 
     if not db_group:
         raise HTTPException(
-            status_code=401,                #TODO check code
-            detail="group does not exist"
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="Group does not exist"
         )
 
     await db.commit()

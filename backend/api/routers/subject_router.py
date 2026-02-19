@@ -46,7 +46,7 @@ async def create_subject(
     return db_subject
 
 
-@router.delete("/delete")
+@router.delete("/delete", status_code=204)
 async def delete_subject(
         subject: subject_schema.SubjectGlobalGroup,
         user_id: str = Depends(auth_crud.get_user_id),
@@ -54,8 +54,7 @@ async def delete_subject(
 
     await auth_crud.check_relations(db, subject.global_group_id, user_id)
 
-    result = await subject_crud.delete_subject(db, subject.global_group_id, subject.subject_id)
-    return result #TODO change response with False
+    await subject_crud.delete_subject(db, subject.global_group_id, subject.subject_id)
 
 
 @router.put("/update", response_model=subject_schema.Subject)

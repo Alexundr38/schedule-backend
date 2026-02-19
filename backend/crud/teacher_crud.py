@@ -1,6 +1,9 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
+
+from starlette import status
+
 from backend.models import models
 from sqlalchemy import select, delete, update
 
@@ -42,7 +45,7 @@ async def add_teacher(db: AsyncSession, global_group_id: str, teacher_name: str)
     check_teacher = await get_teacher_by_name(db, teacher_name, global_group_id)
     if check_teacher:
         raise HTTPException(
-            status_code=401,                    #TODO change status code
+            status_code=status.HTTP_409_CONFLICT,
             detail="Teacher already exists"
         )
 
@@ -65,7 +68,7 @@ async def add_teacher(db: AsyncSession, global_group_id: str, teacher_name: str)
     return db_teacher
 
 
-async def delete_teacher(db: AsyncSession, global_group_id: str, teacher_id: str) -> bool:
+async def delete_teacher(db: AsyncSession, global_group_id: str, teacher_id: str):
     subquery = (
         select(models.GlobalGroupTeacher.teacher_id).\
         where(
@@ -85,10 +88,12 @@ async def delete_teacher(db: AsyncSession, global_group_id: str, teacher_id: str
     # )
 
     if result.rowcount == 0:
-        return False
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="Subject does not exist"
+        )
 
     await db.commit()
-    return True
 
 
 async def update_teacher(db: AsyncSession, teacher_id: str, teacher_name:str, global_group_id: str) -> Optional[models.Teacher]:
@@ -96,7 +101,7 @@ async def update_teacher(db: AsyncSession, teacher_id: str, teacher_name:str, gl
     old_teacher = await get_teacher_by_name(db, teacher_name, global_group_id)
     if old_teacher:
         raise HTTPException(
-            status_code=401, #TODO change code
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="Teacher already exists"
         )
 
@@ -111,7 +116,7 @@ async def update_teacher(db: AsyncSession, teacher_id: str, teacher_name:str, gl
 
     if not db_teacher:
         raise HTTPException(
-            status_code=401,                #TODO check code
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="Teacher does not exist"
         )
 

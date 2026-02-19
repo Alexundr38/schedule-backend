@@ -13,8 +13,8 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 
 class EventFormat(enum.Enum):
-    ONLINE = "online"
-    OFFLINE = "offline"
+    ONLINE = "ONLINE"
+    OFFLINE = "OFFLINE"
 
 
 class User(Base):
@@ -326,7 +326,7 @@ class Plan(Base):
         nullable=False
     )
     event_format = Column(
-        SQLAlchemyEnum(EventFormat, name="event_format_enum"),
+        SQLAlchemyEnum(EventFormat, name="event_format_enum", schema="schedule_schema"),
         default=EventFormat.OFFLINE
     )
     hours = Column(Integer, default=0)

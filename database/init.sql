@@ -16,7 +16,7 @@ END $$;
 \c schedule_db
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE TYPE event_format_enum AS ENUM ('ONLINE', 'OFFLINE');
+-- CREATE TYPE schedule_schema.event_format_enum AS ENUM ('ONLINE', 'OFFLINE');
 
 CREATE SCHEMA IF NOT EXISTS schedule_schema;
 

@@ -1,6 +1,9 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
+
+from starlette import status
+
 from backend.models import models
 from sqlalchemy import select, delete, update
 
@@ -42,7 +45,7 @@ async def add_event(db: AsyncSession, global_group_id: str, event_name: str) -> 
     check_event = await get_event_by_name(db, event_name, global_group_id)
     if check_event:
         raise HTTPException(
-            status_code=401,                    #TODO change status code
+            status_code=status.HTTP_409_CONFLICT,
             detail="Event already exists"
         )
 
@@ -65,7 +68,7 @@ async def add_event(db: AsyncSession, global_group_id: str, event_name: str) -> 
     return db_event
 
 
-async def delete_event(db: AsyncSession, global_group_id: str, event_id: str) -> bool:
+async def delete_event(db: AsyncSession, global_group_id: str, event_id: str):
     subquery = (
         select(models.GlobalGroupEvent.event_id).\
         where(
@@ -85,10 +88,12 @@ async def delete_event(db: AsyncSession, global_group_id: str, event_id: str) ->
     # )
 
     if result.rowcount == 0:
-        return False
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="Subject does not exist"
+        )
 
     await db.commit()
-    return True
 
 
 async def update_event(db: AsyncSession, event_id: str, event_name:str, global_group_id: str) -> Optional[models.Event]:
@@ -96,7 +101,7 @@ async def update_event(db: AsyncSession, event_id: str, event_name:str, global_g
     old_event = await get_event_by_name(db, event_name, global_group_id)
     if old_event:
         raise HTTPException(
-            status_code=401, #TODO change code
+            status_code=status.HTTP_409_CONFLICT,
             detail="Event already exists"
         )
 
@@ -111,7 +116,7 @@ async def update_event(db: AsyncSession, event_id: str, event_name:str, global_g
 
     if not db_event:
         raise HTTPException(
-            status_code=401,                #TODO check code
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="Event does not exist"
         )
 

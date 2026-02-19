@@ -34,7 +34,10 @@ def create_access_token(data: dict) -> str:
 def get_token(request:Request) -> Optional[str]:
     token = request.cookies.get("access_token")
     if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token not found"
+        )
     return token
 
 
@@ -43,16 +46,25 @@ def get_user_id(token: str = Depends(get_token)) -> Optional[str]:
         auth_data = get_auth_data()
         payload = jwt.decode(token, auth_data['secret_key'], algorithms=auth_data['algorithm'])
     except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token not valid")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token not valid"
+        )
 
     expire = payload.get("exp")
     expire_time = datetime.fromtimestamp(int(expire), timezone.utc)
     if (not expire) or (expire_time < datetime.now(timezone.utc)):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired"
+        )
 
     user_id = payload.get("sub")
     if not user_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
 
     return user_id
 
@@ -70,6 +82,6 @@ async def check_relations(db: AsyncSession, global_group_id: str, user_id: str) 
         return True
 
     raise HTTPException(
-        status_code=401,
+        status_code=status.HTTP_401_UNAUTHORIZED,
         detail="User ID and group ID do not match"
     )

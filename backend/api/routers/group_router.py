@@ -47,7 +47,7 @@ async def create_group(
     return db_group
 
 
-@router.delete("/delete")
+@router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_group(
         group: group_schema.GroupGlobalGroup,
         user_id: str = Depends(auth_crud.get_user_id),
@@ -55,8 +55,7 @@ async def delete_group(
 
     await auth_crud.check_relations(db, group.global_group_id, user_id)
 
-    result = await group_crud.delete_group(db, group.global_group_id, group.group_id)
-    return result #TODO change response with False
+    await group_crud.delete_group(db, group.global_group_id, group.group_id)
 
 
 @router.put("/update", response_model=group_schema.Group)

@@ -46,7 +46,7 @@ async def create_event(
     return db_event
 
 
-@router.delete("/delete")
+@router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_event(
         event: event_schema.EventGlobalGroup,
         user_id: str = Depends(auth_crud.get_user_id),
@@ -54,8 +54,7 @@ async def delete_event(
 
     await auth_crud.check_relations(db, event.global_group_id, user_id)
 
-    result = await event_crud.delete_event(db, event.global_group_id, event.event_id)
-    return result #TODO change response with False
+    await event_crud.delete_event(db, event.global_group_id, event.event_id)
 
 
 @router.put("/update", response_model=event_schema.Event)

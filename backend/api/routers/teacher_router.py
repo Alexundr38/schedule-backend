@@ -46,7 +46,7 @@ async def create_teacher(
     return db_teacher
 
 
-@router.delete("/delete")
+@router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_teacher(
         teacher: teacher_schema.TeacherGlobalGroup,
         user_id: str = Depends(auth_crud.get_user_id),
@@ -54,8 +54,7 @@ async def delete_teacher(
 
     await auth_crud.check_relations(db, teacher.global_group_id, user_id)
 
-    result = await teacher_crud.delete_teacher(db, teacher.global_group_id, teacher.teacher_id)
-    return result #TODO change response with False
+    await teacher_crud.delete_teacher(db, teacher.global_group_id, teacher.teacher_id)
 
 
 @router.put("/update", response_model=teacher_schema.Teacher)

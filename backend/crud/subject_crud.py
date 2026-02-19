@@ -1,6 +1,9 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List, Tuple
+
+from starlette import status
+
 from backend.models import models
 from sqlalchemy import select, delete, update
 
@@ -41,7 +44,7 @@ async def add_subject(db: AsyncSession, global_group_id: str, subject_name: str)
     check_subject = await get_subject_by_name(db, subject_name, global_group_id)
     if check_subject:
         raise HTTPException(
-            status_code=401,                    #TODO change status code
+            status_code=status.HTTP_409_CONFLICT,
             detail="Subject already exists"
         )
 
@@ -64,7 +67,7 @@ async def add_subject(db: AsyncSession, global_group_id: str, subject_name: str)
     return db_subject
 
 
-async def delete_subject(db: AsyncSession, global_group_id: str, subject_id: str) -> bool:
+async def delete_subject(db: AsyncSession, global_group_id: str, subject_id: str):
     subquery = (
         select(models.GlobalGroupSubject.subject_id).\
         where(
@@ -84,10 +87,12 @@ async def delete_subject(db: AsyncSession, global_group_id: str, subject_id: str
     # )
 
     if result.rowcount == 0:
-        return False
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="Subject does not exist"
+        )
 
     await db.commit()
-    return True
 
 
 async def update_subject(db: AsyncSession, subject_id: str, subject_name:str, global_group_id: str) -> Optional[models.Subject]:
@@ -95,7 +100,7 @@ async def update_subject(db: AsyncSession, subject_id: str, subject_name:str, gl
     old_subject = await get_subject_by_name(db, subject_name, global_group_id)
     if old_subject:
         raise HTTPException(
-            status_code=401, #TODO change code
+            status_code=status.HTTP_409_CONFLICT,
             detail="Subject already exists"
         )
 
@@ -110,7 +115,7 @@ async def update_subject(db: AsyncSession, subject_id: str, subject_name:str, gl
 
     if not db_subject:
         raise HTTPException(
-            status_code=401,                #TODO check code
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="Subject does not exist"
         )
 
