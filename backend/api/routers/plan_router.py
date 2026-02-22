@@ -44,3 +44,6 @@ async def delete_plan(
     await auth_crud.check_relations(db, plan_data.global_group_id, user_id)
 
     await plan_crud.delete_plan(db, plan_data)
+
+
+#TODO add update

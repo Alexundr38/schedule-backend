@@ -1,6 +1,6 @@
 from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy import Column, Integer, String, ForeignKey, UUID, DateTime, Time
+from sqlalchemy import Column, Integer, String, ForeignKey, UUID, DateTime, Time, Date
 from sqlalchemy.schema import MetaData
 import uuid
 from sqlalchemy import Enum as SQLAlchemyEnum
@@ -476,6 +476,8 @@ class Lesson(Base):
         ForeignKey("plan.plan_id", ondelete="CASCADE"),
         nullable=False
     )
+
+    date = Column(Date, nullable=False)
 
     lesson_time = relationship(
         "LessonTime",
