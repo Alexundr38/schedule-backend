@@ -127,3 +127,55 @@ async def delete_time_group(db: AsyncSession, data: TimeGroupNameId):
         )
 
     await db.commit()
+
+
+async def update_time_group(db: AsyncSession, time_data: TimeGroup):
+    time_with_id = [time.lesson_time_id for time in time_data.times if time.lesson_time_id is not None]
+
+    await db.execute(
+        delete(models.LessonTime).
+        where(
+            ~models.LessonTime.lesson_time_id.in_(time_with_id),
+            models.LessonTime.time_group_id == time_data.time_group_id
+        )
+    )
+    await db.flush()
+
+    await db.execute(
+        update(models.TimeGroup).
+        where(models.TimeGroup.time_group_id == time_data.time_group_id).
+        values(name=time_data.name)
+    )
+
+    current_times = []
+
+    for time_group in time_data.times:
+        if time_group.lesson_time_id is not None:
+            await db.execute(
+                update(models.LessonTime).
+                where(models.LessonTime.lesson_time_id == time_group.lesson_time_id).
+                values(start_time=time_group.start_time, end_time=time_group.end_time)
+            )
+            current_times.append(time_group)
+        else:
+            new_time = models.LessonTime(
+                start_time=time_group.start_time,
+                end_time=time_group.end_time,
+                time_group_id=time_data.time_group_id
+            )
+            db.add(new_time)
+        await db.flush()
+
+    await db.commit()
+
+    result = await db.execute(
+        select(models.LessonTime)
+        .where(models.LessonTime.time_group_id == time_data.time_group_id)
+    )
+    updated_times = result.scalars().all()
+
+    return LessonTimeGroup(
+        time_group_id=time_data.time_group_id,
+        name=time_data.name,
+        times=updated_times
+    )

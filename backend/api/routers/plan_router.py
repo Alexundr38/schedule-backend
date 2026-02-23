@@ -47,3 +47,15 @@ async def delete_plan(
 
 
 #TODO add update
+
+
+@router.put("/update", response_model=plan_schema.PlanAllData)
+async def update_plan(
+        plan_data: plan_schema.Plan,
+        user_id: str = Depends(auth_crud.get_user_id),
+        db: AsyncSession = Depends(get_db)):
+
+    await auth_crud.check_relations(db, plan_data.global_group_id, user_id)
+
+    db_plan = await plan_crud.update_plan(db, plan_data)
+    return db_plan

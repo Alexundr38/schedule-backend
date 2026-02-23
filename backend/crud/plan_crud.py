@@ -179,3 +179,72 @@ async def delete_plan(db: AsyncSession, plan_data: plan_schema.PlanGlobalGroup):
         )
 
     await db.commit()
+
+
+async def update_plan(db: AsyncSession, plan_data: plan_schema.Plan) -> plan_schema.PlanAllData:
+    db_plan = (await db.execute(
+        select(
+            models.Plan.group_id,
+            models.Plan.subject_id,
+            models.Plan.event_id,
+            models.Plan.event_format,
+            models.Plan.hours,
+            models.TeacherPlan.teacher_id
+        ).
+        join(models.TeacherPlan).
+        where(
+            models.TeacherPlan.teacher_id == plan_data.teacher_id,
+            models.Plan.subject_id == plan_data.subject_id,
+            models.Plan.event_id == plan_data.event_id,
+            models.Plan.event_format == plan_data.event_format,
+            models.Plan.hours == plan_data.hours,
+            models.Plan.group_id == plan_data.group_id,
+        )
+    )).first()
+
+    if db_plan:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Plan already exists"
+        )
+
+    plan = (await db.execute(
+        select(models.Plan).
+        where(models.Plan.plan_id == plan_data.plan_id)
+    )).scalar()
+
+    teacher_plan = (await db.execute(
+        select(models.TeacherPlan).
+        where(models.TeacherPlan.plan_id == plan_data.plan_id)
+    )).scalar()
+
+    if str(teacher_plan.teacher_id) != plan_data.teacher_id:
+        await db.delete(teacher_plan)
+
+        new_teacher_plan = models.TeacherPlan(
+            plan_id=plan_data.plan_id,
+            teacher_id=plan_data.teacher_id,
+        )
+
+        db.add(new_teacher_plan)
+        await db.flush()
+        plan.teacher_id = plan_data.teacher_id
+
+    if str(plan.group_id) != plan_data.group_id:
+        plan.group_id = plan_data.group_id
+
+    if str(plan.subject_id) != plan_data.subject_id:
+        plan.subject_id = plan_data.subject_id
+
+    if str(plan.event_id) != plan_data.event_id:
+        plan.event_id = plan_data.event_id
+
+    if str(plan.event_format) != plan_data.event_format:
+        plan.event_format = EventFormat(plan_data.event_format)
+
+    if plan.hours != plan_data.hours:
+        plan.hours = plan_data.hours
+
+    await db.commit()
+    response = await get_plan_by_plan_id(db, plan.plan_id)
+    return response
