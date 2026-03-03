@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Union
 
 from backend.crud import teacher_crud, auth_crud
 from backend.schemas import teacher_schema
@@ -10,7 +12,7 @@ router = APIRouter(prefix="/teacher", tags=["teacher"])
 
 @router.get("/list", response_model=List[teacher_schema.Teacher])
 async def get_teacher_list(
-        global_group_id: str,
+        global_group_id: Union[UUID, str] = Query(...),
         user_id: str = Depends(auth_crud.get_user_id),
         db: AsyncSession = Depends(get_db)) -> List[teacher_schema.Teacher]:
 
@@ -22,7 +24,7 @@ async def get_teacher_list(
 
 @router.get("/list_name_id", response_model=List[teacher_schema.Teacher])
 async def get_teacher_name_id_list(
-        global_group_id: str,
+        global_group_id: Union[UUID, str] = Query(...),
         user_id: str = Depends(auth_crud.get_user_id),
         db: AsyncSession = Depends(get_db)) -> List[teacher_schema.Teacher]:
 

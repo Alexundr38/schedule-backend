@@ -32,3 +32,8 @@ class PlanAllData(Plan):
 class PlanGlobalGroup(BaseModel):
     plan_id: Union[UUID, str]
     global_group_id: Union[UUID, str]
+
+
+class PlanGroup(BaseModel):
+    group_id: Union[UUID, str]
+    global_group_id: Union[UUID, str]

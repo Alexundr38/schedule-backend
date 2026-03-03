@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from api.routers import user_router, global_group_router, teacher_router, group_router, subject_router, event_router, time_router
-from backend.api.routers import plan_router
+from backend.api.routers import plan_router, lesson_router
 
 app = FastAPI()
 
@@ -26,6 +26,8 @@ app.include_router(subject_router.router)
 app.include_router(event_router.router)
 app.include_router(plan_router.router)
 app.include_router(time_router.router)
+app.include_router(lesson_router.router)
+
 @app.get("/")
 def root():
     return {"message": "API started"}

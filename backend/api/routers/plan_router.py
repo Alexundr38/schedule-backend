@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Union
+from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -24,7 +25,7 @@ async def create_plan(
 
 @router.get("/list", response_model=List[plan_schema.PlanAllData])
 async def get_plan_list(
-        global_group_id: str,
+        global_group_id: Union[UUID, str] = Query(...),
         user_id: str = Depends(auth_crud.get_user_id),
         db: AsyncSession = Depends(get_db)):
 
@@ -59,3 +60,21 @@ async def update_plan(
 
     db_plan = await plan_crud.update_plan(db, plan_data)
     return db_plan
+
+
+@router.get("/list_by_group", response_model=List[plan_schema.PlanAllData])
+async def get_plan_list_by_group(
+        group_id: Union[UUID, str] = Query(...),
+        global_group_id: Union[UUID, str] = Query(...),
+        user_id: str = Depends(auth_crud.get_user_id),
+        db: AsyncSession = Depends(get_db)):
+
+    plan_data = plan_schema.PlanGroup(
+        group_id=group_id,
+        global_group_id=global_group_id
+    )
+
+    await auth_crud.check_relations(db, plan_data.global_group_id, user_id)
+
+    db_plans = await plan_crud.get_plans_by_group(db, plan_data)
+    return db_plans

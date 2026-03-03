@@ -5,7 +5,7 @@ from typing import Optional, List
 from starlette import status
 
 from backend.models import models
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete, update, Row
 
 
 async def get_teacher_by_name(db: AsyncSession, teacher_name: str, global_group_id: str) -> Optional[models.Teacher]:
@@ -124,3 +124,13 @@ async def update_teacher(db: AsyncSession, teacher_id: str, teacher_name:str, gl
     await db.refresh(db_teacher)
 
     return db_teacher
+
+
+async def get_teacher_id_by_plan_id(db: AsyncSession, plan_id: str):
+    result = await db.execute(
+        select(models.Teacher.teacher_id).
+        join(models.TeacherPlan).
+        where(models.TeacherPlan.plan_id == plan_id)
+    )
+
+    return result.scalar_one()

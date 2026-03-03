@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Union
+from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -24,7 +25,7 @@ async def create_time(
 
 @router.get("/list", response_model=List[time_schema.LessonTimeGroup])
 async def get_time_group_list(
-        global_group_id: str,
+        global_group_id: Union[UUID, str] = Query(...),
         user_id: str = Depends(auth_crud.get_user_id),
         db: AsyncSession = Depends(get_db)):
 

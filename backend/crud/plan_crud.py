@@ -248,3 +248,43 @@ async def update_plan(db: AsyncSession, plan_data: plan_schema.Plan) -> plan_sch
     await db.commit()
     response = await get_plan_by_plan_id(db, plan.plan_id)
     return response
+
+
+async def get_plans_by_group(db: AsyncSession, plan_data: plan_schema.PlanGroup) -> List[plan_schema.PlanAllData]:
+
+    response = (await db.execute(
+        select(
+            models.Plan,
+            models.Group.name.label('group_name'),
+            models.Subject.name.label('subject_name'),
+            models.Event.name.label('event_name'),
+            models.Teacher.name.label('teacher_name'),
+            models.TeacherPlan.teacher_id,
+            models.TeacherPlan.priority,
+        ).
+        join(models.Group).
+        join(models.Subject).
+        join(models.Event).
+        join(models.TeacherPlan).
+        join(models.Teacher).
+        where(
+            models.Plan.global_group_id == plan_data.global_group_id,
+            models.Plan.group_id == plan_data.group_id,
+        )
+    )).mappings().all()
+
+    return [plan_schema.PlanAllData(
+        global_group_id=row["Plan"].global_group_id,
+        plan_id=row["Plan"].plan_id,
+        group_id=row["Plan"].group_id,
+        group_name=row["group_name"],
+        subject_id=row["Plan"].subject_id,
+        subject_name=row["subject_name"],
+        event_id=row["Plan"].event_id,
+        event_name=row["event_name"],
+        teacher_id=row["teacher_id"],
+        teacher_name=row["teacher_name"],
+        priority=row["priority"],
+        event_format=row["Plan"].event_format,
+        hours=row["Plan"].hours
+    ) for row in response]
