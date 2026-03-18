@@ -14,6 +14,7 @@ services:
       - ./database/init.sql:/app/database/init.sql
     ports:
       - "5431:5432"
+    restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -50,19 +51,22 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - backend
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
     networks:
       - schedule-network
 
   frontend-dev:
     build:
       context: ${FRONTEND_PATH}
-      dockerfile: Dockerfile.dev  # специальный Dockerfile для разработки
+      dockerfile: Dockerfile.dev
     ports:
-      - "5173:5173"               # порт dev-сервера (у Vite по умолчанию 5173)
+      - "5173:5173"
     volumes:
-      - ${FRONTEND_PATH}:/app     # монтируем исходники
-      - /app/node_modules          # не даём перезаписать node_modules из образа
+      - ${FRONTEND_PATH}:/app
+      - /app/node_modules
     networks:
       - schedule-network
     command: [ "npm", "run", "dev", "--", "--host", "0.0.0.0" ]
